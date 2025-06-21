@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Wallet, ImageIcon, Coins, Upload, Sparkles } from "lucide-react"
 import WalletConnect from "@/components/wallet-connect"
@@ -40,6 +40,15 @@ export default function HomePage() {
   const handleWalletConnect = (connected: boolean, accountAddress: string) => {
     setIsConnected(connected)
     setAccount(accountAddress)
+
+    // 如果断开连接，重置所有状态
+    if (!connected) {
+      setGeneratedImages([])
+      setPosterData(null)
+      setSelectedImage("")
+      setActiveTab("generate")
+      setShouldAutoMint(false)
+    }
   }
 
   const handleImagesGenerated = (images: string[]) => {
@@ -81,47 +90,65 @@ export default function HomePage() {
           <WalletConnect onConnect={handleWalletConnect} isConnected={isConnected} account={account} />
         </div>
 
-        {/* Main Content - 直接显示Tabs，不再检查连接状态 */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="generate" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              AI生成与海报制作
-            </TabsTrigger>
-            <TabsTrigger value="mint" className="flex items-center gap-2">
-              <Upload className="w-4 h-4" />
-              NFT铸造
-              {selectedImage && <span className="ml-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
-            </TabsTrigger>
-            <TabsTrigger value="rewards" className="flex items-center gap-2">
-              <Coins className="w-4 h-4" />
-              奖励系统
-            </TabsTrigger>
-          </TabsList>
+        {/* Main Content - 只有连接钱包后才显示 */}
+        {isConnected ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
+              <TabsTrigger value="generate" className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                AI生成与海报制作
+              </TabsTrigger>
+              <TabsTrigger value="mint" className="flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                NFT铸造
+                {selectedImage && <span className="ml-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>}
+              </TabsTrigger>
+              <TabsTrigger value="rewards" className="flex items-center gap-2">
+                <Coins className="w-4 h-4" />
+                奖励系统
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="generate">
-            <AIImageGenerator
-              onImagesGenerated={handleImagesGenerated}
-              onPosterCreated={handlePosterCreated}
-              onImageSelected={handleImageSelected}
-              account={account || "0x0000...0000"} // 提供默认值
-            />
-          </TabsContent>
+            <TabsContent value="generate">
+              <AIImageGenerator
+                onImagesGenerated={handleImagesGenerated}
+                onPosterCreated={handlePosterCreated}
+                onImageSelected={handleImageSelected}
+                account={account}
+              />
+            </TabsContent>
 
-          <TabsContent value="mint">
-            <NFTMinter
-              posterData={posterData}
-              selectedImage={selectedImage}
-              account={account || "0x0000...0000"} // 提供默认值
-              shouldAutoMint={shouldAutoMint}
-              onAutoMintComplete={() => setShouldAutoMint(false)}
-            />
-          </TabsContent>
+            <TabsContent value="mint">
+              <NFTMinter
+                posterData={posterData}
+                selectedImage={selectedImage}
+                account={account}
+                shouldAutoMint={shouldAutoMint}
+                onAutoMintComplete={() => setShouldAutoMint(false)}
+              />
+            </TabsContent>
 
-          <TabsContent value="rewards">
-            <RewardSystem account={account || "0x0000...0000"} />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="rewards">
+              <RewardSystem account={account} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <Card className="max-w-md mx-auto">
+            <CardHeader className="text-center">
+              <Wallet className="w-12 h-12 mx-auto mb-4 text-purple-600" />
+              <CardTitle>连接钱包开始使用</CardTitle>
+              <CardDescription>请连接您的MetaMask钱包以访问去中心化身份认证和NFT功能</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              <div className="text-sm text-gray-600">
+                <p>🎨 AI生成个性化艺术作品</p>
+                <p>🖼️ 创建独特的自我介绍海报</p>
+                <p>💎 铸造专属NFT收藏品</p>
+                <p>🎁 获得创作奖励和收益</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Features Overview */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
