@@ -39,12 +39,7 @@ export default function AIImageGenerator({
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // 预设的AI艺术图片
-  const aiArtImages = [
-    "/images/ai-art-1.png", // 数字故障艺术风格女性肖像
-    "/images/ai-art-2.png", // 彩色数字艺术女性人物
-    "/images/ai-art-3.png", // 赛博朋克风格数字化人物
-    "/images/ai-art-4.png", // VR/未来主义风格人物
-  ]
+  const presetImages = ["/images/elysia-cipher.png", "/images/lyra-hex.png", "/images/lysander-kairos.png"]
 
   const generateImages = async () => {
     if (!prompt.trim()) return
@@ -57,31 +52,11 @@ export default function AIImageGenerator({
       // 模拟AI图像生成过程
       await new Promise((resolve) => setTimeout(resolve, 3000))
 
-      // 根据提示词和风格选择不同的图片组合
-      let selectedImages: string[] = []
+      // 使用预设的高质量AI艺术图片
+      const mockImages = [...presetImages]
 
-      if (style === "cyberpunk" || prompt.toLowerCase().includes("cyber") || prompt.toLowerCase().includes("digital")) {
-        selectedImages = [aiArtImages[2], aiArtImages[3], aiArtImages[0]] // 更偏向赛博朋克风格
-      } else if (
-        style === "portrait" ||
-        prompt.toLowerCase().includes("portrait") ||
-        prompt.toLowerCase().includes("face")
-      ) {
-        selectedImages = [aiArtImages[0], aiArtImages[1], aiArtImages[2]] // 更偏向人物肖像
-      } else if (
-        style === "abstract" ||
-        prompt.toLowerCase().includes("abstract") ||
-        prompt.toLowerCase().includes("art")
-      ) {
-        selectedImages = [aiArtImages[1], aiArtImages[3], aiArtImages[0]] // 更偏向抽象艺术
-      } else {
-        // 默认随机选择3张
-        const shuffled = [...aiArtImages].sort(() => 0.5 - Math.random())
-        selectedImages = shuffled.slice(0, 3)
-      }
-
-      setGeneratedImages(selectedImages)
-      onImagesGenerated(selectedImages)
+      setGeneratedImages(mockImages)
+      onImagesGenerated(mockImages)
     } catch (error) {
       console.error("生成图像失败:", error)
     } finally {
@@ -191,15 +166,9 @@ export default function AIImageGenerator({
   }
 
   // 获取图片描述
-  const getImageDescription = (imageUrl: string) => {
-    const index = aiArtImages.indexOf(imageUrl)
-    const descriptions = [
-      "数字故障艺术风格，彩色人物肖像",
-      "赛博朋克风格，未来主义数字艺术",
-      "像素化数字代码艺术，科技感强烈",
-      "VR虚拟现实主题，前卫艺术风格",
-    ]
-    return descriptions[index] || "AI生成的数字艺术作品"
+  const getImageDescription = (imageUrl: string, index: number) => {
+    const descriptions = ["赛博朋克风格 - ELYSIA CIPHER", "全息艺术家 - LYRA HEX", "跨维几何学家 - DR. LYSANDER KAIROS"]
+    return descriptions[index] || `AI生成图像 ${index + 1}`
   }
 
   return (
@@ -211,14 +180,14 @@ export default function AIImageGenerator({
             <Sparkles className="w-5 h-5 text-purple-600" />
             AI图像生成器
           </CardTitle>
-          <CardDescription>输入关键词和描述，AI将为您生成个性化的数字艺术作品</CardDescription>
+          <CardDescription>输入关键词和描述，AI将为您生成个性化的头像和背景图像</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="prompt">生成提示词</Label>
             <Textarea
               id="prompt"
-              placeholder="描述您想要的图像风格，例如：赛博朋克风格的数字艺术，故障艺术效果，未来主义肖像..."
+              placeholder="描述您想要的图像风格，例如：科技感的未来主义头像，蓝色调，简约设计..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="min-h-[100px]"
@@ -228,20 +197,14 @@ export default function AIImageGenerator({
           <div className="space-y-2">
             <Label htmlFor="style">图像风格</Label>
             <div className="flex gap-2 flex-wrap">
-              {[
-                { key: "portrait", label: "人物肖像" },
-                { key: "cyberpunk", label: "赛博朋克" },
-                { key: "abstract", label: "抽象艺术" },
-                { key: "digital", label: "数字艺术" },
-                { key: "glitch", label: "故障艺术" },
-              ].map((styleOption) => (
+              {["portrait", "abstract", "minimalist", "cyberpunk", "artistic"].map((styleOption) => (
                 <Badge
-                  key={styleOption.key}
-                  variant={style === styleOption.key ? "default" : "outline"}
+                  key={styleOption}
+                  variant={style === styleOption ? "default" : "outline"}
                   className="cursor-pointer"
-                  onClick={() => setStyle(styleOption.key)}
+                  onClick={() => setStyle(styleOption)}
                 >
-                  {styleOption.label}
+                  {styleOption}
                 </Badge>
               ))}
             </div>
@@ -251,12 +214,12 @@ export default function AIImageGenerator({
             {isGenerating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                AI正在创作中...
+                生成中...
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4 mr-2" />
-                生成AI艺术作品
+                生成AI图像
               </>
             )}
           </Button>
@@ -268,45 +231,46 @@ export default function AIImageGenerator({
         <Card>
           <CardHeader>
             <CardTitle>AI生成的艺术作品</CardTitle>
-            <CardDescription>点击选择您喜欢的数字艺术作品，将自动跳转到NFT铸造页面</CardDescription>
+            <CardDescription>点击选择您喜欢的图像，将自动跳转到NFT铸造页面</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {generatedImages.map((image, index) => (
                 <div key={index} className="relative group">
                   <div
-                    className={`relative cursor-pointer border-2 rounded-lg overflow-hidden transition-all duration-200 hover:shadow-lg ${
+                    className={`relative cursor-pointer border-2 rounded-lg overflow-hidden transition-all duration-200 hover:shadow-xl ${
                       selectedImage === image
-                        ? "border-purple-500 ring-2 ring-purple-200"
-                        : "border-gray-200 hover:border-purple-300"
+                        ? "border-blue-500 ring-2 ring-blue-200"
+                        : "border-gray-200 hover:border-blue-300"
                     }`}
                     onClick={() => handleImageSelect(image)}
                   >
                     <img
                       src={image || "/placeholder.svg"}
-                      alt={`AI Generated Art ${index + 1}`}
-                      className="w-full h-48 object-cover"
+                      alt={getImageDescription(image, index)}
+                      className="w-full h-64 object-cover"
                     />
 
                     {/* 选中状态指示器 */}
                     {selectedImage === image && (
-                      <div className="absolute top-2 right-2">
-                        <Badge className="bg-purple-500 text-white">已选择</Badge>
+                      <div className="absolute top-3 right-3">
+                        <Badge className="bg-blue-500 text-white shadow-lg">已选择</Badge>
                       </div>
                     )}
 
                     {/* 点击提示 */}
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 rounded-lg flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-center">
-                        <ArrowRight className="w-8 h-8 mx-auto mb-2" />
-                        <p className="text-sm font-medium">点击选择并铸造NFT</p>
+                        <ArrowRight className="w-10 h-10 mx-auto mb-3" />
+                        <p className="text-lg font-bold">点击选择</p>
+                        <p className="text-sm">自动铸造NFT</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* 图片描述和下载按钮 */}
-                  <div className="mt-2 space-y-2">
-                    <p className="text-xs text-gray-600 text-center">{getImageDescription(image)}</p>
+                  {/* 图片信息和下载按钮 */}
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm font-medium text-gray-700 text-center">{getImageDescription(image, index)}</p>
                     <Button
                       variant="outline"
                       size="sm"
@@ -314,7 +278,7 @@ export default function AIImageGenerator({
                       className="w-full"
                     >
                       <Download className="w-4 h-4 mr-2" />
-                      下载艺术作品
+                      下载图像
                     </Button>
                   </div>
                 </div>
@@ -323,9 +287,12 @@ export default function AIImageGenerator({
 
             {/* 选择提示 */}
             {generatedImages.length > 0 && !selectedImage && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg text-center">
-                <p className="text-purple-800 font-medium">✨ 点击任意艺术作品即可自动跳转到NFT铸造页面</p>
-                <p className="text-sm text-purple-600 mt-1">这些独特的数字艺术作品将成为您专属的NFT收藏</p>
+              <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-purple-600" />
+                  <p className="text-purple-800 font-bold">选择您喜欢的AI艺术作品</p>
+                </div>
+                <p className="text-purple-600 text-sm">点击任意图像即可自动跳转到NFT铸造页面并开始铸造流程</p>
               </div>
             )}
           </CardContent>
@@ -340,24 +307,24 @@ export default function AIImageGenerator({
               <FileText className="w-5 h-5 text-blue-600" />
               海报编辑器 (可选)
             </CardTitle>
-            <CardDescription>您可以为选中的艺术作品添加文字信息，或直接跳转到NFT铸造</CardDescription>
+            <CardDescription>您可以为选中的图像添加文字信息，或直接跳转到NFT铸造</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">标题 (可选)</Label>
               <Input
                 id="title"
-                placeholder="为您的数字艺术作品起个名字"
+                placeholder="输入您的姓名或标题"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">艺术描述 (可选)</Label>
+              <Label htmlFor="description">自我介绍 (可选)</Label>
               <Textarea
                 id="description"
-                placeholder="描述这件艺术作品的创作理念或特色..."
+                placeholder="简单介绍一下自己..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="min-h-[100px]"
@@ -388,11 +355,11 @@ export default function AIImageGenerator({
             <div className="flex gap-2">
               <Button onClick={createPoster} disabled={!selectedImage || !title} className="flex-1">
                 <Palette className="w-4 h-4 mr-2" />
-                创建艺术海报
+                创建海报
               </Button>
               <Button variant="outline" onClick={downloadPoster} disabled={!selectedImage || !title}>
                 <Download className="w-4 h-4 mr-2" />
-                下载海报
+                下载
               </Button>
             </div>
           </CardContent>
@@ -406,12 +373,12 @@ export default function AIImageGenerator({
       {selectedImage && title && (
         <Card>
           <CardHeader>
-            <CardTitle>艺术海报预览</CardTitle>
-            <CardDescription>您的个性化艺术海报预览，可以直接用于NFT铸造</CardDescription>
+            <CardTitle>海报预览</CardTitle>
+            <CardDescription>您的个性化海报预览，可以直接用于NFT铸造</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="relative max-w-sm mx-auto">
-              <img src={selectedImage || "/placeholder.svg"} alt="Art poster preview" className="w-full rounded-lg" />
+              <img src={selectedImage || "/placeholder.svg"} alt="Poster preview" className="w-full rounded-lg" />
               <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white p-4 rounded-b-lg">
                 <h3 className="font-bold text-lg" style={{ color: textColor, fontSize: `${fontSize[0] * 0.6}px` }}>
                   {title}
